@@ -5,7 +5,7 @@ namespace msd {
   struct Params {
     double m{1.0};
     double c{0.2};
-    double k{10.0}
+    double k{10.0};
   };
 
   struct State {

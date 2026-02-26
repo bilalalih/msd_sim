@@ -34,16 +34,14 @@ namespace msd {
     for (size_t i = 0; i < rows.size(); ++i) {
       bool ok = true;
       for (size_t j = 0; j < rows.size(); ++j) {
-        if (std::abs(rows[j].x - x_final) > band) {
-          ok = false;
-          break;
-        }
+        if (std::abs(rows[j].x - x_final) > band) {ok = false; break;}
       }
       if (ok) {
           idx_settle = static_cast<int>(i);
           break;
       }
     }
+
     m.settling_time_2pct = (idx_settle >= 0) ? rows[static_cast<size_t>(idx_settle)].t: -1.0;
     return m;
   }
