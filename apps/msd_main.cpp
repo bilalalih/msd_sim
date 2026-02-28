@@ -51,19 +51,31 @@ static void print_metrics(const std::string& name, const Metrics& m) {
   std::cout << "steady_state_err    = " << m.steady_state_error << "\n";
 }
 
+static std::filesystem::path project_root() {
+  #ifdef MSD_PROJECT_ROOT
+    return std::filesystem::path(MSD_PROJECT_ROOT);
+  #else
+    return std::filesystem::current_path(); // fallback
+  #endif
+}
+
 int main() {
-  std::filesystem::create_directories("data");
-  std::filesystem::create_directories("plots");
+  const auto root = project_root();
+  const auto data_dir = root / "data";
+  const auto plots_dir = root / "plots";
+
+  std::filesystem::create_directories(data_dir);
+  std::filesystem::create_directories(plots_dir);
 
   // Scenario: step input (best for overshoot/settling metrics)
   Params p;
   p.m = 1.0;
-  p.c = 0.6;
-  p.k = 12.0;
+  p.c = 4.0;
+  p.k = 60.0;
 
-  const double dt = 0.001;
+  const double dt = 0.01;
   const double t0 = 0.0;
-  const double t1 = 6.0;
+  const double t1 = 15.0;
 
   State s0;
   s0.x = 0.0;
@@ -78,11 +90,12 @@ int main() {
   auto euler_rows = run_sim(p, s0, t0, t1, dt, *input, false);
   auto rk4_rows = run_sim(p, s0, t0, t1, dt, *input, true);
 
-  write_csv("data/msd_euler.csv", euler_rows);
-  write_csv("data/msd_rk4.csv", rk4_rows);
+  write_csv((data_dir / "msd_euler.csv").string(), euler_rows);
+  write_csv((data_dir / "msd_rk4.csv").string(), rk4_rows);
 
-  const auto m_euler = compute_step_metrics(euler_rows, x_final);
-  const auto m_rk4 = compute_step_metrics(rk4_rows, x_final);
+  const double t_step = 0.2;
+  const auto m_euler = compute_step_metrics(euler_rows, x_final, t_step);
+  const auto m_rk4 = compute_step_metrics(rk4_rows, x_final, t_step);
 
   std::cout << "MSD parameters: m=" << p.m << " c=" << p.c << " k=" << p.k << "\n";
   std::cout << "dt=" << dt << " T=" << (t1- t0) << " step_amp=" << step_amp << " x_final=" << x_final << "\n\n";
@@ -91,7 +104,7 @@ int main() {
   std::cout << "\n";
   print_metrics("RK4", m_rk4);
 
-  std::cout << "\nWrote: \n data/msd_euler.csv\n data/msd_rk4.csv\n";
+  std::cout << "\nWrote: \n" << (data_dir / "msd_euler.csv") << "\n" << (data_dir/"msd_rk4.csv") << "\n";
   std::cout << "Next:\n python scripts/plot.py\n";
   return 0;
 }

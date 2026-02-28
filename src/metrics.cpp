@@ -40,8 +40,6 @@ namespace msd {
           break;
       }
     }
-    std::cout << "2% band = " << 0.02 * std::abs(x_final) << "\n";
-    std::cout << "|x(T) - x_final|" << std::abs(rows.back().x - x_final) << "\n";
     m.settling_time_2pct = (idx_settle >= 0) ? rows[static_cast<size_t>(idx_settle)].t: -1.0;
     return m;
   }

@@ -16,3 +16,4 @@ target_include_directories(msd_lib PUBLIC include)
 
 add_executable(msd_sim apps/msd_main.cpp)
 target_link_libraries(msd_sim PRIVATE msd_lib)
+target_compile_definitions(msd_sim PRIVATE MSD_PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
