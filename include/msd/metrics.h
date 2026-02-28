@@ -10,6 +10,6 @@ namespace msd {
     double settling_time_2pct{-1.0};
   };
 
-  Metrics compute_step_metrics(const std::vector<Sample>& rows, double x_final);
+  Metrics compute_step_metrics(const std::vector<Sample>& rows, double x_final, double t_step);
 
 } // namespace msd
