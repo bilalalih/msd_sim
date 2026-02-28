@@ -24,6 +24,20 @@ def read_csv(path):
 
   return t, x, v, a, u, E
 
+def overlay(c, dt, out_png):
+  euler = f"data/msd_c{c}_dt{dt}_euler.csv"
+  rk4 = f"data/msd_c{c}_dt{dt}_rk4.csv"
+  if not (os.path.exists(euler)) and os.path.exists(rk4):
+    print("Missing:", euler, "or", rk4)
+    return
+
+  te, xe, _, _, _, _ = read_csv(euler)
+  tr, xr, _, _, _, _ = read_csv(rk4)
+  plt.figure()
+  plt.plot(te, xe, label=f"Euler c={c} dt={dt}")
+  plt.plot(tr, xr, label=f"RK4   c={c} dt={dt}")
+  plt.xlabel("time (s)")
+
 def main():
   euler_path = "data/msd_euler.csv"
   rk4_path = "data/msd_rk4.csv"

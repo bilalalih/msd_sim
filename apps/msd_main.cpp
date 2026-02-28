@@ -51,6 +51,48 @@ static void print_metrics(const std::string& name, const Metrics& m) {
   std::cout << "steady_state_err    = " << m.steady_state_error << "\n";
 }
 
+static std::string tag(double c, double dt, const std::string& method) {
+  auto fmt = [](double x){
+    std::string s = std::to_string(x);
+    // crude trimming
+    while (!s.empty() && s.back() == '0') s.pop_back();
+    if(!s.empty() && s.back() == '.') s.pop_back();
+    for (auto& ch: s) if (ch == '.') ch = 'p';
+      return s;
+  };
+  return "c" + fmt(c) + "_dt" + fmt(dt) + "_" + method;
+}
+
+static void run_case(
+  const Params& base,
+  double c, double dt, double t0, double t1,
+  const State& s0,
+  const Input& input,
+  double x_final,
+  double t_step
+) {
+  Params p = base;
+  p.c = c;
+
+  auto euler_rows = run_sim(p, s0, t0, t1, dt, input, false);
+  auto rk4_rows = run_sim(p, s0, t0, t1, dt, input, true);
+
+  const std::string euler_csv = "data/msd_" + tag(c, dt, "euler") + ".csv";
+  const std::string rk4_csv = "data/msd_" + tag(c, dt, "rk4") + ".csv";
+
+  write_csv(euler_csv, euler_rows);
+  write_csv(rk4_csv, rk4_rows);
+
+  const auto m_euler = compute_step_metrics(euler_rows, x_final, t_step);
+  const auto m_rk4 = compute_step_metrics(rk4_rows, x_final, t_step);
+
+  std::cout << "\n--- Case: c=" << c <<" dt=" << dt << "---\n";
+  print_metrics("Semi-Implicit Euler", m_euler);
+  std::cout << "  csv: " << euler_csv << "\n";
+  print_metrics("RK4", m_rk4);
+  std::cout << "  csv: " << rk4_csv << "\n";
+}
+
 static std::filesystem::path project_root() {
   #ifdef MSD_PROJECT_ROOT
     return std::filesystem::path(MSD_PROJECT_ROOT);
@@ -67,44 +109,32 @@ int main() {
   std::filesystem::create_directories(data_dir);
   std::filesystem::create_directories(plots_dir);
 
-  // Scenario: step input (best for overshoot/settling metrics)
-  Params p;
-  p.m = 1.0;
-  p.c = 4.0;
-  p.k = 60.0;
+  Params base;
+  base.m = 1.0;
+  base.k = 12.0;
 
-  const double dt = 0.01;
   const double t0 = 0.0;
   const double t1 = 15.0;
+  const double t_step = 0.2;
 
-  State s0;
-  s0.x = 0.0;
-  s0.v = 0.0;
+  State s0{0.0, 0.0};
 
   const double step_amp = 1.0;
-  auto input = make_step(0.2, step_amp);
+  auto input = make_step(t_step, step_amp);
 
-  // For step input, steady-state x_final = u/k (for stable systems)
-  const double x_final = step_amp / p.k;
+  const double x_final = step_amp / base.k;
 
-  auto euler_rows = run_sim(p, s0, t0, t1, dt, *input, false);
-  auto rk4_rows = run_sim(p, s0, t0, t1, dt, *input, true);
+  const double dt_small = 0.001;
+  const double dt_big = 0.05;
 
-  write_csv((data_dir / "msd_euler.csv").string(), euler_rows);
-  write_csv((data_dir / "msd_rk4.csv").string(), rk4_rows);
+  // Case A: clean settling (near critical)
+  run_case(base, 7.0, dt_small, t0, t1, s0, *input, x_final, t_step);
+  run_case(base, 7.0, dt_big, t0, t1, s0, *input, x_final, t_step);
 
-  const double t_step = 0.2;
-  const auto m_euler = compute_step_metrics(euler_rows, x_final, t_step);
-  const auto m_rk4 = compute_step_metrics(rk4_rows, x_final, t_step);
+  // Case B: underdamped (overshoot + ringing)
+  run_case(base, 0.6, dt_small, t0, t1, s0, *input, x_final, t_step);
+  run_case(base, 0.6, dt_big, t0, t1, s0, *input, x_final, t_step);
 
-  std::cout << "MSD parameters: m=" << p.m << " c=" << p.c << " k=" << p.k << "\n";
-  std::cout << "dt=" << dt << " T=" << (t1- t0) << " step_amp=" << step_amp << " x_final=" << x_final << "\n\n";
-
-  print_metrics("Semi-Implicit Euler", m_euler);
-  std::cout << "\n";
-  print_metrics("RK4", m_rk4);
-
-  std::cout << "\nWrote: \n" << (data_dir / "msd_euler.csv") << "\n" << (data_dir/"msd_rk4.csv") << "\n";
-  std::cout << "Next:\n python scripts/plot.py\n";
+  std::cout << "\nDone. Now run:\n python scripts/plot.py\n";
   return 0;
 }
