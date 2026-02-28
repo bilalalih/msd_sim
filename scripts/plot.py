@@ -2,18 +2,25 @@ import csv
 import os
 import math
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+os.chdir(ROOT)
 
 def read_csv(path):
   t=[]; x=[]; v=[]; a=[]; u=[]; E=[];
   with open(path, newline="") as f:
     r = csv.DictReader(f)
+    r.fieldnames = [name.strip() for name in r.fieldnames]
+
     for row in r:
+      row = {k.strip(): v for k, v in row.items()}
       t.append(float(row["time"]))
-      x.append(float(row["x"]))
-      v.append(float(row["v"]))
-      a.append(float(row["a"]))
-      u.append(float(row["u"]))
-      E.append(float(row["E"]))
+      x.append(float(row['x']))
+      v.append(float(row['v']))
+      a.append(float(row['a']))
+      u.append(float(row['u']))
+      E.append(float(row['E']))
 
   return t, x, v, a, u, E
 
@@ -30,8 +37,8 @@ def main():
 
   # Position plot
   plt.figure()
-  plt.plot(te, xe, label='Euler (semi-implicit)')
-  plt.plot(tr, xr, label='RK4')
+  plt.plot(tr, xr, 'r-',label='RK4', linewidth=2)
+  plt.plot(te, xe, 'b--',label='Euler (semi-implicit)', linewidth=1)
   plt.xlabel("time (s)")
   plt.ylabel("x (m)")
   plt.title("Mass-Spring-Damper: position")
@@ -52,6 +59,17 @@ def main():
   plt.savefig("plots/msd_energy.png", dpi=150)
   plt.close()
 
+  # difference plot
+  diff = [abs(a-b) for a,b in zip(xe, xr)]
+  plt.figure()
+  plt.plot(te, diff)
+  plt.xlabel("time (s)")
+  plt.ylabel("|x_euler - x_rk4|")
+  plt.title("Integrator difference")
+  plt.tight_layout()
+  plt.savefig("plots/msd_diff.png", dpi=150)
+  plt.close()
+
   # Combined summary (optional single image)
   plt.figure()
   plt.plot(te, xe, label='x Euler')
@@ -67,6 +85,7 @@ def main():
   print("Wrote: ")
   print("  plots/msd_x.png")
   print("  plots/msd_energy.png")
+  print("  plots/msd_diff.png")
   print(f" {out_path}")
 
 if __name__ == "__main__":
