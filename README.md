@@ -43,6 +43,7 @@ The key questions explored:
 
 ### Dynamics
 State formulation:
+
 $$
 \dot{x} = v
 $$
@@ -52,6 +53,7 @@ $$
 $$
 
 Energy sanity check:
+
 $$
 E(t) = \frac{1}{2} m v^2 + \frac{1}{2} k x^2
 $$
@@ -84,6 +86,7 @@ Total: **8 simulations**
 ## Results
 ### Clean settling case (c = 7)
 Euler and RK4 are nearly identical at small timestep.
+
 At coarse timestep, Euler shows slight numerical damping but remains stable.
 
 | Case     | Integrator | Settling Time (2%) | Overshoot |
@@ -113,6 +116,7 @@ At coarse timestep:
 
 ### High-Fidelity Reference Comparison
 RK4 with dt=0.001 is treated as the reference trajectory.
+
 Coarse timestep simulations (dt=0.05) are compared against it.
 
 This highlights:
