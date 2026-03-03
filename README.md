@@ -26,6 +26,16 @@ The simulation generates:
 
 ---
 
+## Tech Stack
+
+- C++17
+- CMake
+- Python (Matplotlib for visualization)
+- Numerical integration (Euler, RK4)
+- Dynamical systems modeling
+
+---
+
 ## Problem
 
 Second-order physical systems must be discretized for digital simulation and control
