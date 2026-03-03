@@ -1,37 +1,42 @@
+![Integrator Comparison](plots/msd_reference_c0p6.png)
 # Mass–Spring–Damper (MSD) Simulation — Euler vs RK4
 
 ## Overview
 
-This project simulates the 1D mass–spring–damper system:
+This project implements a 1D mass–spring–damper system:
 
 [
 m\ddot{x} + c\dot{x} + kx = u(t)
 ]
 
-using two numerical integrators:
+and compares two numerical integrators:
 
 * **Semi-implicit Euler** (energy-dissipative baseline)
 * **Runge–Kutta 4 (RK4)** (higher-order integrator)
 
-The goal is to compare **stability, accuracy, and numerical behavior** across damping regimes and timestep sizes.
+The objective is to evaluate:
+
+* Stability behavior
+* Transient fidelity
+* Numerical damping effects
+* Sensitivity to timestep size
 
 The simulation generates:
 
 * CSV time-series logs
 * Automated plots
-* Console metrics (overshoot, settling time, steady-state error)
+* Quantitative metrics (overshoot, settling time, steady-state error)
 
 ---
 
 ## Problem
 
-Continuous-time second-order systems must be discretized for simulation and control implementation.
+Second-order physical systems must be discretized for digital simulation and control
 
 The key questions explored:
 
-* How does timestep size (`dt`) affect solution fidelity?
+* How does timestep size (`dt`) affect solution accuracy?
 * How do integrators behave in:
-
   * near-critical damping (clean settling)
   * underdamped oscillatory systems?
 * Does the numerical method introduce artificial damping or phase distortion?
@@ -111,7 +116,7 @@ At small timestep, Euler ≈ RK4 (baseline accuracy).
 At coarse timestep:
 
 * Euler exhibits **artificial numerical damping**
-* RK4 preserves oscillatory behavior but shows **amplitude/phase error**
+* RK4 preserves oscillatory behavior but shows **phase/amplitude distortion**
 
 | Case     | Integrator | Peak Overshoot | Settling Time |
 | -------- | ---------- | -------------- | ------------- |
@@ -120,10 +125,28 @@ At coarse timestep:
 | dt=0.05  | Euler      | 0.7602         | 12.95 s       |
 | dt=0.05  | RK4        | 0.7966         | 15.00 s       |
 
-This demonstrates that:
+---
 
-* Semi-implicit Euler can appear “stable” due to added numerical damping.
-* RK4 better preserves physical oscillation but requires adequate timestep.
+### High-Fidelity Reference Comparison
+
+RK4 with dt=0.001 is treated as the reference trajectory.
+Coarse timestep simulations (dt=0.05) are compared against it.
+
+This highlights:
+- Numerical damping introduced by semi-implicit Euler
+- Phase/amplitude distortion at coarse timestep
+- Sensitivity of oscillatory systems to timestep size
+
+---
+
+### Engineering Interpretation
+
+For lightly damped systems, timestep selection directly impacts transient fidelity.
+
+Semi-implicit Euler introduces artificial damping that reduces oscillation amplitude and accelerates decay.
+RK4 preserves the oscillatory structure more accurately but requires adequate timestep to avoid phase and amplitude error.
+
+This demonstrates that integrator choice and timestep size materially affect simulation fidelity in control and robotics applications.
 
 ---
 
@@ -138,10 +161,10 @@ After running:
 
 **Plots**
 
+* `plots/msd_reference_c*.png`
 * `plots/msd_c*_dt*.png`
-* `plots/msd_overlay.png` (integrator comparison)
-* `plots/msd_energy.png`
-* `plots/msd_diff.png`
+* `plots/msd_energy_c*_dt*.png`
+* `plots/msd_diff_c*_dt*.png`
 
 ---
 
@@ -152,6 +175,7 @@ cmake -S . -B build
 cmake --build build
 ./build/msd_sim
 python scripts/plot.py
+python scripts/plot_overlay.py
 ```
 
 Windows (PowerShell):
@@ -161,16 +185,15 @@ cmake -S . -B build
 cmake --build build
 .\build\Debug\msd_sim.exe
 python .\scripts\plot.py
+python .\scripts\plot_overlay.py
 ```
 
 ---
 
 ## Key Takeaways
 
-* Integrator choice directly affects oscillatory fidelity.
-* Coarse timesteps distort dynamics differently across methods.
+* Integrator selection affects transient accuracy.
+* Coarse timesteps distort oscillatory dynamics.
 * Semi-implicit Euler introduces numerical damping.
-* RK4 provides higher accuracy but still depends on timestep size.
-* Energy tracking is a useful sanity diagnostic.
-
-
+* RK4 improves fidelity but remains timestep-sensitive.
+* Energy tracking provides a useful diagnostic check.
