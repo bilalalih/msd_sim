@@ -1,4 +1,4 @@
-![Integrator Comparison](plots/msd_reference_c0p6.png)
+![Integrator Comparison](docs/msd_reference_c0p6.png)
 # Mass–Spring–Damper (MSD) Simulation — Euler vs RK4
 
 ## Overview
