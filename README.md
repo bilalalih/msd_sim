@@ -5,24 +5,21 @@
 
 This project implements a 1D mass–spring–damper system:
 
-[
+$$
 m\ddot{x} + c\dot{x} + kx = u(t)
-]
+$$
 
 and compares two numerical integrators:
-
 * **Semi-implicit Euler** (energy-dissipative baseline)
 * **Runge–Kutta 4 (RK4)** (higher-order integrator)
 
 The objective is to evaluate:
-
 * Stability behavior
 * Transient fidelity
 * Numerical damping effects
 * Sensitivity to timestep size
 
 The simulation generates:
-
 * CSV time-series logs
 * Automated plots
 * Quantitative metrics (overshoot, settling time, steady-state error)
@@ -34,7 +31,6 @@ The simulation generates:
 Second-order physical systems must be discretized for digital simulation and control
 
 The key questions explored:
-
 * How does timestep size (`dt`) affect solution accuracy?
 * How do integrators behave in:
   * near-critical damping (clean settling)
@@ -46,46 +42,38 @@ The key questions explored:
 ## Approach
 
 ### Dynamics
-
 State formulation:
-
-[
+$$
 \dot{x} = v
-]
-[
+$$
+
+$$
 \dot{v} = \frac{u - c v - k x}{m}
-]
+$$
 
 Energy sanity check:
-
-[
+$$
 E(t) = \frac{1}{2} m v^2 + \frac{1}{2} k x^2
-]
+$$
 
 ---
 
 ### Integrators
-
 * **Semi-implicit Euler**
-
   * First-order
   * Adds numerical damping in oscillatory systems
 * **RK4**
-
   * Fourth-order
   * Better trajectory fidelity at moderate timesteps
 
 ---
 
 ### Experimental Matrix
-
 Two damping regimes:
-
 * **Case A (near critical damping):** `c = 7`
 * **Case B (underdamped oscillatory):** `c = 0.6`
 
 Two timestep sizes:
-
 * `dt = 0.001` (high fidelity reference)
 * `dt = 0.05`  (coarse timestep stress test)
 
@@ -94,9 +82,7 @@ Total: **8 simulations**
 ---
 
 ## Results
-
 ### Clean settling case (c = 7)
-
 Euler and RK4 are nearly identical at small timestep.
 At coarse timestep, Euler shows slight numerical damping but remains stable.
 
@@ -110,11 +96,9 @@ At coarse timestep, Euler shows slight numerical damping but remains stable.
 ---
 
 ### Underdamped case (c = 0.6)
-
 At small timestep, Euler ≈ RK4 (baseline accuracy).
 
 At coarse timestep:
-
 * Euler exhibits **artificial numerical damping**
 * RK4 preserves oscillatory behavior but shows **phase/amplitude distortion**
 
@@ -128,7 +112,6 @@ At coarse timestep:
 ---
 
 ### High-Fidelity Reference Comparison
-
 RK4 with dt=0.001 is treated as the reference trajectory.
 Coarse timestep simulations (dt=0.05) are compared against it.
 
@@ -144,6 +127,7 @@ This highlights:
 For lightly damped systems, timestep selection directly impacts transient fidelity.
 
 Semi-implicit Euler introduces artificial damping that reduces oscillation amplitude and accelerates decay.
+
 RK4 preserves the oscillatory structure more accurately but requires adequate timestep to avoid phase and amplitude error.
 
 This demonstrates that integrator choice and timestep size materially affect simulation fidelity in control and robotics applications.
